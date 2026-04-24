@@ -1,5 +1,5 @@
 """
-User management API — intentionally contains bugs for demo purposes.
+User management API — intentionally contains bugs for Code Guardian demo.
 """
 
 import sqlite3
@@ -36,8 +36,8 @@ def hash_password(password):
 
 def read_user_file(filename):
     """Read a user-provided file. BUG: path traversal vulnerability."""
-    # BUG 4: no path sanitization — attacker can pass ../../etc/passwd
     base_dir = "/app/user_files/"
+    # BUG 4: no path sanitization — attacker can pass ../../etc/passwd
     filepath = base_dir + filename
     with open(filepath, "r") as f:
         return f.read()
