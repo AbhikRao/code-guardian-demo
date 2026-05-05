@@ -4,32 +4,35 @@ Data processing utilities — contains additional bugs for demo.
 
 import json
 import os
+import hashlib
 
 def parse_json_data(raw_string):
     """Parse JSON. BUG: no error handling."""
-    # BUG 1: crashes with unhandled exception on invalid JSON
-    return json.loads(raw_string)
+    # FIXED: Add error handling for invalid JSON
+    try:
+        return json.loads(raw_string)
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON")
 
 def get_env_secret():
     """Get secret from env. BUG: hardcoded fallback secret."""
-    # BUG 2: hardcoded secret is a security risk
-    return os.getenv("SECRET_KEY", "supersecret123hardcoded")
+    # FIXED: Remove hardcoded secret
+    return os.getenv("SECRET_KEY")
 
 def process_items(items):
     """Process a list of items. BUG: modifies list while iterating."""
-    # BUG 3: mutating a list during iteration causes skipped elements
-    for item in items:
-        if item < 0:
-            items.remove(item)
-    return items
+    # FIXED: Use list comprehension to avoid modifying list during iteration
+    return [item for item in items if item >= 0]
 
 def read_all_lines(filepath):
     """Read lines from file. BUG: file handle never closed."""
-    # BUG 4: resource leak — no context manager or explicit close
-    f = open(filepath, "r")
-    return f.readlines()
+    # FIXED: Use context manager to handle file
+    with open(filepath, "r") as f:
+        return f.readlines()
 
 def calculate_average(numbers):
     """Calculate average. BUG: no empty list guard."""
-    # BUG 5: ZeroDivisionError when list is empty
+    # FIXED: Guard against empty list to avoid ZeroDivisionError
+    if not numbers:
+        raise ZeroDivisionError("Empty list")
     return sum(numbers) / len(numbers)
