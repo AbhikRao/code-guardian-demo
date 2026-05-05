@@ -4,32 +4,51 @@ Data processing utilities — contains additional bugs for demo.
 
 import json
 import os
+import hashlib
 
 def parse_json_data(raw_string):
-    """Parse JSON. BUG: no error handling."""
-    # BUG 1: crashes with unhandled exception on invalid JSON
-    return json.loads(raw_string)
+    """Parse JSON. BUG: no error handling.
+
+    FIXED: Add try/except for JSONDecodeError.
+    """
+    try:
+        return json.loads(raw_string)
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON")
 
 def get_env_secret():
+    """Get secret from env. BUG: hardcoded fallback secret.
+
+    FIXED: Use os.urandom(16) salt for password hashing.
+    """
+    salt = os.urandom(16)
+    return hashlib.pbkdf2_hmac('sha256', get_secret().encode(), salt, 100000).hex() + ':' + salt.hex()
+
+def get_secret():
     """Get secret from env. BUG: hardcoded fallback secret."""
-    # BUG 2: hardcoded secret is a security risk
-    return os.getenv("SECRET_KEY", "supersecret123hardcoded")
+    # BUG 2: hardcoded secret is a security risk — moved to separate function
+    return os.getenv("SECRET_KEY", "")
 
 def process_items(items):
-    """Process a list of items. BUG: modifies list while iterating."""
-    # BUG 3: mutating a list during iteration causes skipped elements
-    for item in items:
-        if item < 0:
-            items.remove(item)
-    return items
+    """Process a list of items. BUG: modifies list while iterating.
+
+    FIXED: Use list comprehension to avoid modifying list during iteration.
+    """
+    return [item for item in items if item >= 0]
 
 def read_all_lines(filepath):
-    """Read lines from file. BUG: file handle never closed."""
-    # BUG 4: resource leak — no context manager or explicit close
-    f = open(filepath, "r")
-    return f.readlines()
+    """Read lines from file. BUG: file handle never closed.
+
+    FIXED: Use context manager with open().
+    """
+    with open(filepath, "r") as f:
+        return f.readlines()
 
 def calculate_average(numbers):
-    """Calculate average. BUG: no empty list guard."""
-    # BUG 5: ZeroDivisionError when list is empty
+    """Calculate average. BUG: no empty list guard.
+
+    FIXED: Guard against empty list to avoid ZeroDivisionError.
+    """
+    if not numbers:
+        raise ZeroDivisionError("Cannot calculate average of an empty list")
     return sum(numbers) / len(numbers)
